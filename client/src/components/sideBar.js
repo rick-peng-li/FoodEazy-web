@@ -4,6 +4,7 @@ import { Link, Redirect } from "react-router-dom";
 import "animate.css";
 const Sidebar = (props) => {
   const { logout, isAuthenticated, user, verified } = useContext(AuthContext);
+  const isAdmin = user && user.role === "admin";
   const [display,setDisplay]= useState(1);
  
   useEffect(()=>{
@@ -71,7 +72,7 @@ const Sidebar = (props) => {
           )}
           {/* {!isAuthenticated ? <li>SignUp</li> : ""} */}
 
-          {isAuthenticated && verified && (
+          {isAuthenticated && verified && isAdmin && (
             <li onClick={props.changeDisplay}>
               <Link
                 style={{ textDecoration: "none", color: "white" }}
@@ -81,7 +82,7 @@ const Sidebar = (props) => {
               </Link>
             </li>
           )}
-          {isAuthenticated && verified ? (
+          {isAuthenticated && verified && isAdmin ? (
             <li onClick={props.changeDisplay}>
               {" "}
               <Link

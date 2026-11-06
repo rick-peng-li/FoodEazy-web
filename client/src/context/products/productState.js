@@ -13,7 +13,7 @@ const ProductState = (props) => {
   const loadItems = async () => {
     try {
       dispatch({ type: "SetLoading" });
-      const res = await axios.get("api/items");
+      const res = await axios.get("/api/items");
       await dispatch({ type: "LOAD_PRODUCTS", payload: res.data });
       dispatch({ type: "UnsetLoading" });
       return 0;

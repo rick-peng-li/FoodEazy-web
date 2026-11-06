@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const upload = require("../controllers/upload");
 const Router = express.Router();
 const Product = require("../models/product");
@@ -6,11 +7,19 @@ const User = require("../models/register");
 const Cloudinary = require("cloudinary");
 const auth = require("../middleware/auth");
 const config = require("config");
-Cloudinary.config({
-  cloud_name: "devforlife07",
-  api_key: config.get("api_key"),
-  api_secret: config.get("api_secret"),
-});
+
+const cloudName = config.get("cloud_name");
+const apiKey = config.get("api_key");
+const apiSecret = config.get("api_secret");
+const useCloudinary = cloudName && apiKey && apiSecret;
+
+if (useCloudinary) {
+  Cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+  });
+}
 
 Router.post("/upload", auth, async (req, res) => {
   upload(req, res, async (err) => {
@@ -29,24 +38,29 @@ Router.post("/upload", auth, async (req, res) => {
       });
 
       if (product) return res.status(400).json("Product already exists!");
-      Cloudinary.v2.uploader.upload(req.file.path, async function (
-        error,
-        result
-      ) {
+
+      try {
+        let imageUrl = `/images/${path.basename(req.file.path)}`;
+        if (useCloudinary) {
+          const result = await new Promise((resolve, reject) => {
+            Cloudinary.v2.uploader.upload(req.file.path, (error, result) =>
+              error ? reject(error) : resolve(result)
+            );
+          });
+          imageUrl = result.url;
+        }
         product = new Product({
           type: req.body.type,
           name: req.body.name,
           price: req.body.price,
-          url: result.url,
+          url: imageUrl,
         });
-        try {
-          await product.save();
-          return res.status(200).json("Item Saved Successfully!");
-        } catch (e) {
-          console.log(e);
-          res.status(500).send("Server Error");
-        }
-      });
+        await product.save();
+        return res.status(200).json("Item Saved Successfully!");
+      } catch (e) {
+        console.log(e);
+        res.status(500).send("Server Error");
+      }
     }
   });
 });

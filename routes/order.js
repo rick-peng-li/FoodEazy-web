@@ -66,8 +66,12 @@ router.post("/", cors(), auth, async (req, res) => {
 				text: "That was easy!",
 				html: "Hi, <strong>" + name + "</strong><h2>Order Successfully Placed!</h2><h3><p>Thank you for ordering from Food Eazy</h3> Your order id: " + order_id + "</p><p style='text-align: left;'>Regards, <h1>Food Eazy</h1></>",
 			};
-			let msg = await transporter.sendMail(mailOptions)
-			console.log(msg);
+			try {
+				let msg = await transporter.sendMail(mailOptions)
+				console.log(msg);
+			} catch (mailError) {
+				console.log("Order confirmation email skipped:", mailError.message);
+			}
 			let update = {
 				cart: {},
 			};
@@ -109,8 +113,12 @@ router.post("/", cors(), auth, async (req, res) => {
 				text: "That was easy!",
 				html: "Hi, <strong>" + name + "</strong><h2>Order Successfully Placed!</h2><h3><p>Thank you for ordering from Food Eazy</h3> Your order id: " + order_id + "</p><p style='text-align: left;'>Regards, <h1>Food Eazy</h1></>",
 			};
-			let msg = await transporter.sendMail(mailOptions)
-			console.log(msg);
+			try {
+				let msg = await transporter.sendMail(mailOptions)
+				console.log(msg);
+			} catch (mailError) {
+				console.log("Order confirmation email skipped:", mailError.message);
+			}
 			let update = {
 				cart: {},
 			};

@@ -1,15 +1,12 @@
 const Router = require("express").Router();
-const qs = require("query-string");
 const crypto = require("crypto");
 const Order = require("../models/orders");
 const Users = require("../models/register");
-const https = require("https");
 const checksum_lib = require("../paytm/checksum");
 const auth = require("../middleware/auth");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 var CronJob = require("cron").CronJob;
-const shortid = require("shortid");
 
 const transporter = nodemailer.createTransport(
   sendgridTransport({
@@ -19,17 +16,24 @@ const transporter = nodemailer.createTransport(
   })
 );
 
+const merchantId = process.env.PAYTM_MERCHANT_ID || process.env.MERCHANT_ID;
+const merchantKey = process.env.PAYTM_MERCHANT_API_KEY || process.env.MERCHANT_API_KEY;
+const publicBaseUrl = process.env.PUBLIC_BASE_URL || "http://localhost:5000";
+
 Router.post("/", auth, async (req, res) => {
+  if (!merchantId || !merchantKey) {
+    return res.status(400).json("PayTM is not configured. Please choose Cash on Delivery.");
+  }
   let params = {};
   let order_id = crypto.randomBytes(16).toString("hex");
-  (params["MID"] = process.env.MERCHANT_ID),
+  (params["MID"] = merchantId),
   (params["WEBSITE"] = "WEBSTAGING"),
   (params["CHANNEL_ID"] = "WEB"),
   ((params["ORDER_ID"] = order_id.toString()),
     (params["CUST_ID"] = req.user.id.toString()),
     (params["INDUSTRY_TYPE_ID"] = "Retail"),
     (params["TXN_AMOUNT"] = req.body.txn_amount.toString()),
-    (params["CALLBACK_URL"] = "https://foodeazy-web.herokuapp.com/api/paytm/success"),
+    (params["CALLBACK_URL"] = `${publicBaseUrl}/api/paytm/success`),
     (params["EMAIL"] = req.body.user.email.toString()),
     (params["MOBILE_NO"] = req.body.user.number.toString()));
 
@@ -49,8 +53,8 @@ Router.post("/", auth, async (req, res) => {
     return res.sendStatus(500)
     console.log(e);
   }
-  checksum_lib.genchecksum(params, process.env.MERCHANT_API_KEY, (err, checksum) => {
-    let txn_url = "https://securegw-stage.paytm.in/order/process";
+  checksum_lib.genchecksum(params, merchantKey, (err, checksum) => {
+    let txn_url = process.env.PAYTM_TXN_URL || "https://securegw-stage.paytm.in/order/process";
     let form_fields = "";
     for (x in params) {
       form_fields +=
@@ -80,7 +84,7 @@ Router.post("/success", async (req, res) => {
     await Order.deleteOne({
       order_id: id,
     });
-    res.redirect("https://foodeazy-web.herokuapp.com/fail");
+    res.redirect(`${publicBaseUrl}/fail`);
 
   } else {
     let order = await Order.findOne({
@@ -128,7 +132,7 @@ Router.post("/success", async (req, res) => {
           },
           update
         );
-        res.redirect("https://foodeazy-web.herokuapp.com/success?orderid=" + body.ORDERID)
+        res.redirect(`${publicBaseUrl}/success?orderid=` + body.ORDERID)
       }
     });
 

@@ -1,9 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const morgan = require("morgan");
 const connectDB = require("./config/db");
 const path = require("path");
-require('dotenv').config();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 app.use(cors());
@@ -25,17 +25,21 @@ app.use("/api/orders", cors(), require("./routes/order"));
 app.use("/api/verify", require("./routes/verify"));
 app.use("/api/forget", require("./routes/forget"));
 app.use("/api/reset", require("./routes/reset"));
-app.use("/api/resend", require('./routes/resendCode'));
+app.use("/api/resend", require("./routes/resendCode"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/items", require("./routes/items"));
 app.use("/api/paytm", require("./routes/paytm"));
 app.use("/api/get_orders", require("./routes/orders"));
 
-app.use(express.static(path.join(__dirname, '/build/')))
+const clientBuild = path.join(__dirname, "client", "build");
+app.use(express.static(clientBuild));
 
 app.use("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "build", "index.html"))
-})
+  if (req.originalUrl.startsWith("/api/")) {
+    return res.status(404).json({ msg: "API not found" });
+  }
+  res.sendFile(path.join(clientBuild, "index.html"));
+});
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {

@@ -32,9 +32,16 @@ Router.post('/', async(req, res)=>{
           "<br>Welcome to Food-Eazy</h1><h1>Thanks for Signing up on our app</h1><h3>Your Code for verification is : " + uid + " </h3></div><p>If this request is not made by you kindly ignore this mail.</p><p>Regards, <strong>Food Eazy</strong></p>",
 
       };
+      if (!process.env.SEND_GRID_KEY) {
+        console.log(`Email verification code for ${req.body.email}: ${uid}`);
+      }
+
       transporter.sendMail(mailOptions, async(error, info)=> {
         if (error) {
           console.log(error);
+          const update = {uid: uid};
+          await User.findOneAndUpdate({_id: req.body.id}, update)
+          res.status(200).json('Verification Code sent successfully to you mail id');
         } else {
           console.log("Email sent: " + info);
           console.log(info);

@@ -77,6 +77,8 @@ router.post(
       });
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
+      // Auto-verify when no mail service is configured so local signup works end to end
+      if (!process.env.SEND_GRID_KEY) user.verify = true;
       await user.save();
 
 
@@ -102,6 +104,10 @@ router.post(
           "<br>Welcome to Food-Eazy</h1><h1>Thanks for Signing up on our app</h1><h3>Your Code for verification is : " + uid + " </h3></div><p>If this request is not made by you kindly ignore this mail.</p><p>Regards, <strong>Food Eazy</strong></p>",
 
       };
+
+      if (!process.env.SEND_GRID_KEY) {
+        console.log(`Email verification code for ${email}: ${uid}`);
+      }
 
       transporter.sendMail(mailOptions, function (error, info) {
         if (error) {

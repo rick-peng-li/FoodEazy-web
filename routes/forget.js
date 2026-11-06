@@ -32,7 +32,7 @@ router.post("/", async(req, res)=>{
 		else
 		{
 			let code = shortid.generate();
-		  let link = `https://foodeazy-web.herokuapp.com/forget/${code}`;
+		  let link = `${process.env.PUBLIC_BASE_URL || "http://localhost:5000"}/forget/${code}`;
 		  Forget.findOneAndDelete({email}, (err)=>{
 		  	if(err)
 		  		console.log(err);
@@ -54,6 +54,8 @@ router.post("/", async(req, res)=>{
 		    transporter.sendMail(mailOptions, function (error, info) {
 		        if (error) {
 		          console.log(error);
+		          console.log("Password reset link:", link);
+		          res.status(200).json('Reset Email Sent to your mail id');
 		        } else {
 		          res.status(200).json('Reset Email Sent to your mail id');
 		        }

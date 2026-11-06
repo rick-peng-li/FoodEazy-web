@@ -93,11 +93,7 @@ const AuthState = (props) => {
     };
 
     try {
-      const res = await axios.post(
-        "https://foodeazy-web.herokuapp.com/api/login",
-        formData,
-        config
-      );
+      const res = await axios.post("/api/login", formData, config);
       localStorage.setItem("token", res.data);
       dispatch({
         type: "LOGIN_SUCCESS",

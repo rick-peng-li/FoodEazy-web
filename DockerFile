@@ -1,7 +1,21 @@
-
-FROM node:12
-WORKDIR /app
-COPY package.json /app
+FROM node:20-slim AS client-build
+WORKDIR /app/client
+COPY client/package*.json ./
 RUN npm install
-COPY . /app
-CMD [ "npm","start" ]
+COPY client/ ./
+ENV REACT_APP_API_URL=
+RUN npm run build
+
+FROM node:20-slim
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --omit=dev
+COPY . ./
+COPY --from=client-build /app/client/build ./client/build
+
+ENV PORT=5000
+ENV MONGODB_URI=mongodb://127.0.0.1:27017/foodeazy
+ENV JWT_SECRET=food_eazy_dev_secret
+
+EXPOSE 5000
+CMD ["node", "server.js"]

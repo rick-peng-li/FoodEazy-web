@@ -11,7 +11,8 @@ import { Navbar, Nav, Button } from "react-bootstrap";
 import AuthContext from "../context/auth/authContext";
 
 export default function Navbar1(props) {
-  const { logout, isAuthenticated, userLoaded, verified } = useContext(AuthContext);
+  const { logout, isAuthenticated, verified, user } = useContext(AuthContext);
+  const isAdmin = user && user.role === "admin";
   useEffect(() => {
     // userLoaded();
     // eslint-disable-next-line
@@ -58,7 +59,7 @@ export default function Navbar1(props) {
             </Link>
           </div>
         )}
-        {isAuthenticated && verified && (
+        {isAuthenticated && verified && isAdmin && (
           <div className="navLogout">
             <Link
               style={{ color: "white", textDecoration: "none" }}
@@ -69,7 +70,7 @@ export default function Navbar1(props) {
             </Link>
           </div>
         )}
-        {isAuthenticated && verified && (
+        {isAuthenticated && verified && isAdmin && (
           <div className="navLogout">
             <Link
               style={{ color: "white", textDecoration: "none" }}

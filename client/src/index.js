@@ -9,7 +9,7 @@ import axios from "axios";
 import App from "./App";
 
 const rootElement = document.getElementById("root");
-axios.defaults.baseURL = "https://foodeazy-web.herokuapp.com";
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || "";
 ReactDOM.render(
   <React.StrictMode>
     <AuthState>
